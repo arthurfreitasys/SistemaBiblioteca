@@ -5,6 +5,8 @@ import com.lab.jpa.SistemaBiblioteca.repository.AutorRepository;
 import com.lab.jpa.SistemaBiblioteca.repository.LivroRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
 @Component
@@ -12,6 +14,7 @@ public class DataInitializer implements CommandLineRunner {
 
     private final AutorRepository autorRepository;
     private final LivroRepository livroRepository;
+    Scanner scanner = new Scanner(System.in);
 
     public DataInitializer(AutorRepository autorRepository, LivroRepository livroRepository) {
         this.autorRepository = autorRepository;
@@ -20,7 +23,6 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) throws Exception {
-        var scanner = new Scanner(System.in);
         var continuar = true;
 
         System.out.println("==========================================");
@@ -33,6 +35,7 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("2 - Listar Autores");
             System.out.println("3 - Cadastrar Livro");
             System.out.println("4 - Listar Livros");
+            System.out.println("5 - Buscar Livros Por Nome");
             System.out.println("0 - Sair");
             System.out.print("Escolha uma opção: ");
             var opcao = scanner.nextLine();
@@ -52,6 +55,10 @@ public class DataInitializer implements CommandLineRunner {
                 }
                 case "4" -> {
                     listarLivros();
+                    yield true;
+                }
+                case "5" -> {
+                    buscarLivroPorNome();
                     yield true;
                 }
                 case "0" -> {
@@ -139,5 +146,20 @@ public class DataInitializer implements CommandLineRunner {
         livros.forEach(l -> System.out.printf("ID: %d | Título: %s | Ano: %d | Autor: %s%n",
                 l.getId(), l.getTitulo(), l.getAnoPublicacao(), l.getAutor().getNome()));
         System.out.println("-----------------------");
+    }
+
+    private void buscarLivroPorNome(){
+        System.out.println("Informe o nome do livro que você deseja: ");
+        var nomeLivro = scanner.nextLine();
+
+            List<Livro> livroList = livroRepository.findByTituloContainingIgnoreCase(nomeLivro);
+            if (livroList.isEmpty()){
+                System.out.println("Não há livros cadastrados com esse nome");
+                return;
+            }
+
+            livroList.forEach(l -> System.out.printf("ID: %d | Titulo: %s | Ano: %d | Autor: %s%n",
+                    l.getId(), l.getTitulo(), l.getAnoPublicacao(), l.getAutor().getNome()));
+            System.out.println("----------------------------");
     }
 }
