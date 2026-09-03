@@ -25,9 +25,14 @@ public class Livro {
     @JoinColumn(name = "autor_id", nullable = false)
     private Autor autor;
 
-    public Livro(String titulo, Integer anoPublicacao, Autor autor) {
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "editora_id", nullable = true)
+    private Editora editora;
+
+    public Livro(String titulo, Integer anoPublicacao, Autor autor, Editora editora) {
         this.titulo = titulo;
         this.anoPublicacao = anoPublicacao;
         this.autor = autor;
+        this.editora = editora;
     }
 }

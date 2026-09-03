@@ -1,7 +1,9 @@
 package com.lab.jpa.SistemaBiblioteca.config;
 import com.lab.jpa.SistemaBiblioteca.model.Autor;
+import com.lab.jpa.SistemaBiblioteca.model.Editora;
 import com.lab.jpa.SistemaBiblioteca.model.Livro;
 import com.lab.jpa.SistemaBiblioteca.repository.AutorRepository;
+import com.lab.jpa.SistemaBiblioteca.repository.EditoraRepository;
 import com.lab.jpa.SistemaBiblioteca.repository.LivroRepository;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -14,11 +16,13 @@ public class DataInitializer implements CommandLineRunner {
 
     private final AutorRepository autorRepository;
     private final LivroRepository livroRepository;
+    private final EditoraRepository editoraRepository;
     Scanner scanner = new Scanner(System.in);
 
-    public DataInitializer(AutorRepository autorRepository, LivroRepository livroRepository) {
+    public DataInitializer(AutorRepository autorRepository, LivroRepository livroRepository, EditoraRepository editoraRepository) {
         this.autorRepository = autorRepository;
         this.livroRepository = livroRepository;
+        this.editoraRepository = editoraRepository;
     }
 
     @Override
@@ -35,7 +39,9 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("2 - Listar Autores");
             System.out.println("3 - Cadastrar Livro");
             System.out.println("4 - Listar Livros");
-            System.out.println("5 - Buscar Livros Por Nome");
+            System.out.println("5 - Cadastrar editoras");
+            System.out.println("6 - Listar editoras");
+            System.out.println("7 - Buscar Livros Por Nome");
             System.out.println("0 - Sair");
             System.out.print("Escolha uma opção: ");
             var opcao = scanner.nextLine();
@@ -58,6 +64,14 @@ public class DataInitializer implements CommandLineRunner {
                     yield true;
                 }
                 case "5" -> {
+                    cadastrarEditora(scanner);
+                    yield true;
+                }
+                case "6" -> {
+                    listarEditoras();
+                    yield true;
+                }
+                case "7" -> {
                     buscarLivroPorNome();
                     yield true;
                 }
@@ -86,6 +100,20 @@ public class DataInitializer implements CommandLineRunner {
         var autor = new Autor(nome);
         autorRepository.save(autor);
         System.out.println(">>> Autor '" + autor.getNome() + "' cadastrado com ID: " + autor.getId());
+    }
+
+    private void cadastrarEditora(Scanner scanner){
+        System.out.println("Digite o nome da editora: ");
+        var nome = scanner.nextLine();
+
+        if (nome.isBlank()){
+            System.out.println("Nome invalido");
+            return;
+        }
+
+        var editora = new Editora(nome);
+        editoraRepository.save(editora);
+        System.out.println(">>> Editora '" + editora.getNome() + "'Cadastrado com ID: " + editora.getId());
     }
 
     private void listarAutores() {
@@ -126,7 +154,17 @@ public class DataInitializer implements CommandLineRunner {
             System.out.print("Digite o ano de publicação: ");
             var ano = Integer.parseInt(scanner.nextLine());
 
-            var livro = new Livro(titulo, ano, autorOpt.get());
+            listarEditoras();
+            System.out.println("Digite o nome da editora responsavel: ");
+            var nomeEditora = scanner.nextLine();
+            Optional<Editora> editoraOpt = editoraRepository.findByNomeIgnoreCase(nomeEditora);
+
+            if (editoraOpt.isEmpty()){
+                System.out.println("Editora não encontrada");
+                return;
+            }
+
+            var livro = new Livro(titulo, ano, autorOpt.get(), editoraOpt.get() );
             livroRepository.save(livro);
             System.out.println(">>> Livro '" + livro.getTitulo() + "' cadastrado com sucesso!");
         } catch (NumberFormatException e) {
@@ -143,9 +181,23 @@ public class DataInitializer implements CommandLineRunner {
         }
 
         System.out.println("\n--- LISTA DE LIVROS ---");
-        livros.forEach(l -> System.out.printf("ID: %d | Título: %s | Ano: %d | Autor: %s%n",
-                l.getId(), l.getTitulo(), l.getAnoPublicacao(), l.getAutor().getNome()));
+        livros.forEach(l -> System.out.printf(" ID: %d | Título: %s | Ano: %d | Autor: %s | Editora: %s%n",
+                l.getId(), l.getTitulo(), l.getAnoPublicacao(), l.getAutor().getNome(), l.getEditora().getNome()));
         System.out.println("-----------------------");
+    }
+
+    private void listarEditoras(){
+        var editoras = editoraRepository.findAll();
+
+        if (editoras.isEmpty()){
+            System.out.println("Nenhuma editora cadastrada");
+            return;
+        }
+
+        System.out.println("\n --- Lista de editoras ---");
+        editoras.forEach(e -> System.out.printf(" ID: %d | Nome: %s%n",
+                e.getId(), e.getNome()));
+        System.out.println("--------------------------");
     }
 
     private void buscarLivroPorNome(){
@@ -158,7 +210,7 @@ public class DataInitializer implements CommandLineRunner {
                 return;
             }
 
-            livroList.forEach(l -> System.out.printf("ID: %d | Titulo: %s | Ano: %d | Autor: %s%n",
+            livroList.forEach(l -> System.out.printf(" ID: %d | Titulo: %s | Ano: %d | Autor: %s%n",
                     l.getId(), l.getTitulo(), l.getAnoPublicacao(), l.getAutor().getNome()));
             System.out.println("----------------------------");
     }
