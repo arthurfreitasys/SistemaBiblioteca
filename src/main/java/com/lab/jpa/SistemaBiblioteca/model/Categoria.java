@@ -10,23 +10,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "autores")
+@Table(name = "categoria")
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Autor {
+public class Categoria {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, length = 50)
     private String nome;
 
-    @OneToMany(mappedBy = "autor", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToMany(mappedBy = "categorias")
     @ToString.Exclude
     private List<Livro> livros = new ArrayList<>();
 
-    public Autor(String nome) {
+    public Categoria(String nome) {
         this.nome = nome;
+    }
+
+    public Categoria(String nome, List<Livro> livros) {
+        this.nome = nome;
+        this.livros = livros;
     }
 }
