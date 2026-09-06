@@ -51,6 +51,7 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("7 - Cadastrar Livro");
             System.out.println("8 - Listar Livros");
             System.out.println("9 - Buscar Livros Por Nome");
+            System.out.println("10 - Listar livros por categoria");
             System.out.println("0 - Sair");
             System.out.print("Escolha uma opção: ");
             var opcao = scanner.nextLine();
@@ -90,6 +91,10 @@ public class DataInitializer implements CommandLineRunner {
                 }
                 case "9" -> {
                     buscarLivroPorNome();
+                    yield true;
+                }
+                case "10" -> {
+                    listarLivrosPorCategoria();
                     yield true;
                 }
                 case "0" -> {
@@ -277,6 +282,22 @@ public class DataInitializer implements CommandLineRunner {
                 l.getId(), l.getTitulo(), l.getAnoPublicacao(), l.getAutor().getNome(), l.getEditora() != null ? l.getEditora().getNome() : "Sem editora", l.getCategorias().stream()
                         .map(Categoria::getNome)
                         .collect(Collectors.joining(", "))));
+        System.out.println("-----------------------");
+    }
+
+    private void listarLivrosPorCategoria(){
+        listarCategorias();
+        System.out.println("Informe a categoria desejada: ");
+        var nomeCategoria = scanner.nextLine();
+
+        List<Livro> livroList = livroRepository.findByCategorias_NomeContainingIgnoreCase(nomeCategoria);
+        if (livroList.isEmpty()){
+            System.out.println("Não há livros nessa categoria");
+            return;
+        }
+
+        livroList.forEach(l -> System.out.printf(" ID: %d | Título: %s | Ano: %d | Autor: %s | Editora: %s%n",
+                l.getId(), l.getTitulo(), l.getAnoPublicacao(), l.getAutor().getNome(), l.getEditora() != null ? l.getEditora().getNome() : "Sem editora"));
         System.out.println("-----------------------");
     }
 }
