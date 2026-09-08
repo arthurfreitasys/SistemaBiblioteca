@@ -7,12 +7,12 @@ import com.lab.jpa.SistemaBiblioteca.repository.AutorRepository;
 import com.lab.jpa.SistemaBiblioteca.repository.CategoriaRepository;
 import com.lab.jpa.SistemaBiblioteca.repository.EditoraRepository;
 import com.lab.jpa.SistemaBiblioteca.repository.LivroRepository;
+import com.lab.jpa.SistemaBiblioteca.service.LivroService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Scanner;
 import java.util.stream.Collectors;
 
@@ -23,13 +23,15 @@ public class DataInitializer implements CommandLineRunner {
     private final LivroRepository livroRepository;
     private final EditoraRepository editoraRepository;
     private final CategoriaRepository categoriaRepository;
+    private final LivroService livroService;
     Scanner scanner = new Scanner(System.in);
 
-    public DataInitializer(AutorRepository autorRepository, LivroRepository livroRepository, EditoraRepository editoraRepository, CategoriaRepository categoriaRepository) {
+    public DataInitializer(LivroService livroService, AutorRepository autorRepository, LivroRepository livroRepository, EditoraRepository editoraRepository, CategoriaRepository categoriaRepository) {
         this.autorRepository = autorRepository;
         this.livroRepository = livroRepository;
         this.editoraRepository = editoraRepository;
         this.categoriaRepository = categoriaRepository;
+        this.livroService = livroService;
     }
 
     @Override
@@ -179,26 +181,12 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void cadastrarLivro(Scanner scanner) {
-        listarAutores();
-        System.out.print("Informe o ID do autor do livro: ");
-        var idStr = scanner.nextLine();
-
-        try {
-            var autorId = Long.parseLong(idStr);
-            Optional<Autor> autorOpt = autorRepository.findById(autorId);
-
-            if (autorOpt.isEmpty()) {
-                System.out.println("Autor não encontrado com o ID informado!");
-                return;
-            }
+            listarAutores();
+            System.out.print("Informe o ID do autor do livro: ");
+            var autor = Long.parseLong(scanner.nextLine());
 
             System.out.print("Digite o título do livro: ");
             var titulo = scanner.nextLine();
-
-            if (titulo.isBlank()) {
-                System.out.println("Título inválido!");
-                return;
-            }
 
             System.out.print("Digite o ano de publicação: ");
             var ano = Integer.parseInt(scanner.nextLine());
@@ -206,15 +194,9 @@ public class DataInitializer implements CommandLineRunner {
             listarEditoras();
             System.out.println("Digite o nome da editora responsavel: ");
             var nomeEditora = scanner.nextLine();
-            Optional<Editora> editoraOpt = editoraRepository.findByNomeIgnoreCase(nomeEditora);
-
-            if (editoraOpt.isEmpty()){
-                System.out.println("Editora não encontrada");
-            }
 
             listarCategorias();
-
-            List<Categoria> categorialist = new ArrayList<>();
+            List<String> categorialist = new ArrayList<>();
             do {
                 System.out.println("Digite a(s) categoria(s) (ou aperte enter para parar): ");
                 var nomeCategoria = scanner.nextLine();
@@ -222,21 +204,17 @@ public class DataInitializer implements CommandLineRunner {
                     System.out.println("Categorias adicionadas");
                     break;
                 }
-                Optional<Categoria> x = categoriaRepository.findByNomeIgnoreCase(nomeCategoria);
-                if (x.isEmpty()){
-                    System.out.println("Categoria não encontrada");
-                    continue;
-                }
-                categorialist.add(x.get());
+                categorialist.add(nomeCategoria);
                 }while (true);
 
-            var livro = new Livro(titulo, ano, autorOpt.get(), editoraOpt.orElse(null), categorialist );
-            livroRepository.save(livro);
-            System.out.println(">>> Livro '" + livro.getTitulo() + "' cadastrado com sucesso!");
-        } catch (NumberFormatException e) {
-            System.out.println("Valor numérico inválido informado.");
+            try {
+                Livro livro = livroService.cadastrarLivro(autor, titulo, ano, nomeEditora, categorialist);
+                System.out.println(">>> Livro '" + livro.getTitulo() + "' cadastrado com sucesso!");
+            }catch (IllegalArgumentException e){
+                System.out.println(e.getMessage());
+            }
         }
-    }
+
 
     private void listarLivros() {
         var livros = livroRepository.findAll();
