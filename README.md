@@ -5,8 +5,8 @@ expandido com novas entidades, metodos, relacionamentos e uma camada de serviço
 
 ## Identificação
 
-- **Nome completo:** [Arthur Silva de Freitas]
-- **RA:** [1630482511026]
+- **Nome completo:** Arthur Silva de Freitas
+- **RA:** 1630482511026
 
 ## Descrição do Projeto
 
