@@ -1,4 +1,4 @@
-# SistemaBiblioteca — Sistema de Gestão de Biblioteca
+# SistemaBiblioteca - Sistema de Gestão de Biblioteca
 
 Aplicação em Java com Spring Boot, Spring Data JPA e banco de dados H2, 
 expandido com novas entidades, metodos, relacionamentos e uma camada de serviço.
